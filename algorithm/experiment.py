@@ -1,4 +1,4 @@
-import argparse
+import argparse, threading
 import approximated as ap
 
 parser = argparse.ArgumentParser(description='Runs the approximated self similarity join (1NN) algorithm of a given ser of points several times')
@@ -10,5 +10,18 @@ parser.add_argument('--size', dest='factor', type=int, default=1, help='The fact
 
 args = parser.parse_args()
 
-for count in range(args.iter):
-	ap.sim_join(args.input_matrix, args.output_folder, factor=args.factor, iteration=count)
+MAX_THREADS = 20
+
+def run_t(id):
+	for count in range(args.iter/MAX_THREADS):
+		print("Iteration %d of %d. Thread %d" % (count, args.iter/MAX_THREADS, id))
+		ap.sim_join(args.input_matrix, args.output_folder, factor=args.factor, iteration="%d_%d"%(id, count))
+
+threads = []
+for i in range(MAX_THREADS):
+	t = threading.Thread(target=run_t, args=(i, ))
+	threads.append(t)
+	t.start()
+	
+for t in threads:
+	t.join()

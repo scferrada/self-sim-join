@@ -3,7 +3,7 @@ import numpy as np
 
 def get_centers(data):
 	h, w = data.shape
-	idx = np.random.randint(h, size=math.ceil(math.sqrt(h)), replace=False)
+	idx = np.random.choice(h, size=math.ceil(math.sqrt(h)), replace=False)
 	return data[idx, :]
 
 def make_groups(data, centers, max_size):
@@ -13,8 +13,8 @@ def make_groups(data, centers, max_size):
 		distances = np.abs(np.sum(centers - v, axis=1))
 		indices = np.argsort(distances)
 		for index in indices:
-			if len(result[index]) < max_size:
-				result[index].append((i,v))
+			if len(results[index]) < max_size:
+				results[index].append((i,v))
 				i += 1
 				break
 	return results	

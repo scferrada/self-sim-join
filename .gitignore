@@ -5,7 +5,7 @@ __pycache__/
 *.npy
 # C extensions
 *.so
-
+*.npy
 # Distribution / packaging
 .Python
 env/

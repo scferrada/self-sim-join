@@ -29,8 +29,8 @@ print "starting bruteforce"
 with open(os.path.join(args.output_folder, "knn.csv"), "w") as outfile:	
 	count = 0
 	for row in dataset:
-		distances = np.abs(np.sum(dataset - row, axis=1))
-		idx = np.argsort(distances)[:k]
+		distances = np.sum(np.abs(dataset - row), axis=1))
+		idx = np.argsort(distances)[:k+1]
 		idx_str = np.array2string(idx, separator=',')[2:-2].strip()
 		txt = "%d,%s\n" % (count, idx_str)
 		outfile.write(txt)

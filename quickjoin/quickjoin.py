@@ -48,8 +48,7 @@ c is the minumum amount of vectors needed to perform another recursion step
 def quickjoin(data, r, c, k, eps = 0, distances=0):
 	if data.shape[0] <= c:
 		results, p_dists = piv_join(data, data, r, k, eps)
-		distances += p_dists
-		return results, distances
+		return results, distances + p_dists
 	p1, p2 = choose_pivots(data)
 	rho = np.sum(np.abs(p1-p2))
 	distances += 1
@@ -67,8 +66,7 @@ def quickjoin(data, r, c, k, eps = 0, distances=0):
 def quickjoin_win(Lw, Gw, r, c, k, eps, distances):
 	if (Lw.shape[0] + Gw.shape[0]) <= c:
 		res, p_dists piv_join(Lw, Gw, r, k, eps)
-		distances += p_dists
-		return res, distances
+		return res, distances + p_dists
 	p1, p2 = choose_pivots(np.vstack((Lw, Gw)))
 	rho = np.sum(np.abs(p1-p2))
 	distances += 1

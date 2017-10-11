@@ -17,8 +17,8 @@ MAX_THREADS = 20
 def run_t(id):
 	for j in range(args.iter/MAX_THREADS):
 		for i in range(100/args.batch_size):
-			print("Running %d iteration, %d batch, thread %d" % (j, i, id))
-			dists = ap.sim_join(args.input_matrix, args.output_folder, factor=args.factor, iteration="%d_%d_%d"%(id, j, i) , until=(DATA_SIZE/args.batch_size)*(1+i))
+			print("Running %d iteration, %d batch, thread %d" % (j+1, i+1, id))
+			dists = ap.sim_join(args.input_matrix, args.output_folder, factor=args.factor, iteration="%d_%d_%d"%(id, j+1, i+1) , until=(DATA_SIZE/args.batch_size)*(1+i))
 
 threads = []
 for i in range(MAX_THREADS):

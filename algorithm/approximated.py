@@ -11,7 +11,7 @@ def make_groups(data, centers, max_size):
 	i = 0
 	dists = 0
 	for v in data:
-		distances = np.abs(np.sum(centers - v, axis=1))
+		distances = np.sum(np.abs(centers - v, axis=1))
 		dists += centers.shape[0]
 		indices = np.argsort(distances)
 		for index in indices:
@@ -32,7 +32,7 @@ def sim_join(input_matrix, output_folder, factor=1, iteration=0, until=-1):
 				nn = i
 				for j, y in groups[group]:
 					if np.array_equal(x, y): continue
-					dist = np.abs(np.sum(x-y))
+					dist = np.sum(np.abs(x-y))
 					dists += 1
 					if dist < min_dist:
 						min_dist = dist

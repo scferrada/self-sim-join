@@ -13,7 +13,7 @@ parser.add_argument('--i', dest='i', type=int, default=10, help='The factor of t
 args = parser.parse_args()
 
 DATA_SIZE = 928276
-MAX_THREADS = 20
+MAX_THREADS = 10
 
 def run_t(id):
 	for j in range(args.iter/MAX_THREADS):

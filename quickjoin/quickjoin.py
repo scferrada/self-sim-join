@@ -31,20 +31,27 @@ def qpartition(data, p, r, rho):
 #	return results, distances
 
 def piv_join(data1, data2, r, k, eps):
-	results = []
+	if k > data1.shape[0]:
+		k = data1.shape[0]
+	results = {}
 	P = []
 	distances = 0
 	for i in range(k):
 		P.append(np.sum(np.abs(data2 - data1[i]), axis = 1))
 		distances += data2.shape[0]
-		results.extend([(data1[i], x) for j,x in enumerate(data2) if P[i][j] < r])
+		for j, row in enumerate(P[i]):
+			key = (data1[i].tostring(), data2[j].tostring())
+			if key not in results:
+				results[key] = row
+				continue
+			if row < results[key]:
+				results[key] = row
 	for i in range(k, data1.shape[0]):
 		dists = np.sum(np.abs(data1[:k] - data1[i]), axis=1)
 		distances += k
 		for j in range(data2.shape[0]):
 			f = False
 			for l in range(k):
-				distances += 1
 				if math.abs(P[l][j] - dists[l]) > (1 - eps) * r:
 					f = True
 					break
@@ -78,7 +85,7 @@ def quickjoin(data, r, c, k, eps = 0, distances=0):
 	results.update(res)
 	res, d = quickjoin(G, r, c, k, eps, d)
 	results.update(res)
-	res, d = quickjoin_win(Lw, Gw, r, c, k, eps)
+	res, d = quickjoin_win(Lw, Gw, r, c, k, eps, d)
 	results.update(res)
 	return results, d
 	

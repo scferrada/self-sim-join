@@ -33,7 +33,7 @@ class Group:
         
     def all_but(self, index):
         if len(self)==1: return self.center
-        return np.vstack((np.vstack((self.elems[:index], self.elems[index+1:])), self.center))       
+        return np.vstack((np.vstack((self.elems[:index], self.elems[index+1:])), self.center))   
             
 def get_centers(input_matrix):
     h, w = input_matrix.shape
@@ -86,15 +86,12 @@ def sim_join(input_matrix, k, group_size=1):
         for elem_i in g:
             current = 0
             j=1
-            dist_to_groups = (np.sum(np.abs(centers[:,1:] - elem_i[1:]), axis=1) - R)
-            closest_group = np.argmin(dist_to_groups)
-            if closest_group == i: 
-                closest_group = np.argpartition(dist_to_groups, j)[j]
+            dist_to_groups = np.maximum((np.sum(np.abs(centers[:,1:] - elem_i[1:]), axis=1) - R), 0)
+            closest_group = np.argpartition(dist_to_groups, j)[j]
             target = np.vstack((group.all_but(current), groups[closest_group].all()))
             while len(target) < k:
                 j+=1
                 closest_group = np.argpartition(dist_to_groups, j)[j]
-                if closest_group == i: continue
                 target = np.vstack((target, groups[closest_group].all()))
             distances = np.sum(np.abs(target[:,1:] - elem_i[1:]), axis=1)
             knn = target[np.argpartition(distances, k+1)[:k+1]]

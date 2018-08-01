@@ -14,7 +14,7 @@ args = parser.parse_args()
 data = np.load(args.input_matrix)
 for i in range(args.iter):
 	print("running %d experiment"%i)
-	results = knn.sim_join(data, args.k)
+	results = knn.sim_join(data, args.k, 2)
 	f = open(os.path.join(args.output_folder, "%d.res"%i), "w")
 	for x, nn in results:
 		f.write("%d,%s\n"%(x, str(nn)))

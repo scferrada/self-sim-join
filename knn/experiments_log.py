@@ -1,4 +1,4 @@
-import knn_approximated as knn
+import knn_approx_log as knn
 import numpy as np
 import argparse, os
 
@@ -11,15 +11,18 @@ parser.add_argument('--k', dest='k', type=int, default=10, help='The number of n
 
 args = parser.parse_args()
 
-data = np.load(args.input_matrix)
+data = np.load(args.input_matrix)[:100000]
 for i in range(args.iter):
 	#try:
 	print("running %d experiment"%i)
-	results = knn.sim_join(data, args.k, 3)
+	results, gv = knn.sim_join(data, args.k, 2)
 	f = open(os.path.join(args.output_folder, "%d.res"%i), "w")
 	for x, nn in results:
 		f.write("%d,%s\n"%(x, str(nn)))
 	f.close()
-	# except Exception, e:
-		# print(str(e))
-		# continue
+	f = open(os.path.join(args.output_folder, "%d.gv"%i), "w")
+	f.write(','.join([str(x) for x in gv]))
+	f.close()
+	#except Exception, e:
+	#	print(e)
+	#	continue

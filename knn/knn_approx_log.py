@@ -2,8 +2,9 @@ import numpy as np
 import math
 
 class Group:
-    def __init__(self, center=None, elems=None, r=0):
+    def __init__(self, center=None, elems=None, id=-1, r=0):
         self.center=center
+        self.id = id
         self.elems=elems
         self.r=r
         self.first = True
@@ -45,7 +46,7 @@ def get_centers(input_matrix):
     return data, centers
     
 def make_groups(data, centers, k, max_size, results):
-    groups = [Group(x, [], 0) for x in centers]
+    groups = [Group(x, [], 0, id) for id, x in enumerate(centers)]
     center_nn = np.full((len(centers),k), -1)
     center_mindists = np.full((len(centers),k), np.inf)
     for row in data:
@@ -75,28 +76,45 @@ def sim_join(input_matrix, k, group_size=1):
     matrix = np.hstack((idx, input_matrix))
     data, centers = get_centers(matrix)
     results = []
+    groups_visited = []
     print("making groups...")
     groups = make_groups(data, centers, k, group_size*len(centers), results)
     R = np.array([group.r for group in groups])
-    print("nested loop...")
+    print("nested loop... for %d groups" % len(groups))
     for i, group in enumerate(groups):
         if len(group) <= 1: continue
         if len(group) == 2: g=[group.elems]
         else: g = group.elems
         for elem_i in g:
             current = 0
-            j=1
-            dist_to_groups = np.maximum((np.sum(np.abs(centers[:,1:] - elem_i[1:]), axis=1) - R), 0)
-            closest_group = np.argpartition(dist_to_groups, j)[j]
-            target = np.vstack((group.all_but(current), groups[closest_group].all()))
-            while len(target) < k:
-                j+=1
-                closest_group = np.argpartition(dist_to_groups, j)[j]
-                target = np.vstack((target, groups[closest_group].all()))
+            target = group.all_but(current)
+            dist_to_groups = (np.sum(np.abs(centers[:,1:] - elem_i[1:]), axis=1) - R)
+            sorted_groups = np.argsort(dist_to_groups)
+            gidx = 0
+            while target.shape[0] <= k:
+                if groups[sorted_groups[gidx]].id == group.id:
+                    gidx +=1
+                target = np.vstack((target, groups[sorted_groups[gidx]].all()))
+                gidx +=1
             distances = np.sum(np.abs(target[:,1:] - elem_i[1:]), axis=1)
-            knn = target[np.argpartition(distances, k+1)[:k+1]]
-            knn_str = [x[0] for x in knn]
-            results.append((elem_i[0], knn_str))
+            candidates = np.sort(np.partition(distances, k)[:k]).tolist()
+            knn = candidates
+            while gidx < len(groups):
+                if max(knn) < dist_to_groups[gidx]:
+                    break
+                if groups[sorted_groups[gidx]].id == group.id:
+                    gidx +=1
+                    if gidx >= len(groups): break
+                target = groups[sorted_groups[gidx]].all()
+                distances = np.sum(np.abs(target[:,1:] - elem_i[1:]), axis=1)
+                candidates = distances[distances < max(knn)]
+                for c in candidates:
+                    max_index, max_value = max(enumerate(knn), key=lambda p: p[1])
+                    if c < max_value:
+                        knn[max_index] = c
+                gidx+=1
+            groups_visited.append(gidx)
+            results.append((elem_i[0], knn))
             current += 1
         print("group %d done." % i)
-    return results
+    return results, groups_visited

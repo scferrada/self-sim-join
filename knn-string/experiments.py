@@ -11,7 +11,10 @@ parser.add_argument('--k', dest='k', type=int, default=10, help='The number of n
 
 args = parser.parse_args()
 
-data = np.load(args.input_matrix)
+data = []
+for line in open(args.input_matrix, "r"):
+	data.append(line.strip())
+
 for i in range(args.iter):
 	#try:
 	print("running %d experiment"%i)
@@ -20,6 +23,6 @@ for i in range(args.iter):
 	for x, nn in results:
 		f.write("%d,%s\n"%(x, str(nn)))
 	f.close()
-	# except Exception, e:
-		# print(str(e))
-		# continue
+	#except Exception, e:
+	#	print(str(e))
+	#	continue

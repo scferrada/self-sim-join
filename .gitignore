@@ -27,6 +27,8 @@ wheels/
 *.txt
 *.csv
 *.res
+*.knn
+*.dists
 data/
 
 # PyInstaller

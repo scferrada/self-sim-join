@@ -75,7 +75,6 @@ def piv_join(data1, data2, results, r, k, eps):
     return results, distances, None
 
 
->>>>>>> 963461bc5a713249d2050c67bf78b00d400a42b5
 def knn_join(data1, data2, results, r, k, eps):
     d = 0
     maxdist = 0

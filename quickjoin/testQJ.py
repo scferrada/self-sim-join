@@ -1,7 +1,7 @@
 import numpy as np
 import quickjoin as qj
 
-N = 1000
+N = 100
 l = []
 for i in range(N):
 	l.append([i,i])
@@ -19,9 +19,9 @@ assert N-2 in [x.obj for x in res[N-1]]
 assert N-3 in [x.obj for x in res[N-1]]
 
 for i in range(1,N-1):
-	print i
+	#print i
 	r = [x.obj for x in res[i]]
-	print r
+	#print r
 	assert i-1 in r
 	assert i+1 in r
 	

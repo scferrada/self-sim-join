@@ -25,16 +25,18 @@ class Res:
 		return str(self.obj) + "; " + str(self.dist)
 
 def choose_pivots(data):
+	#np.random.seed(0)
 	idx = np.random.choice(data.shape[0], size=2, replace=False)
 	#return data[idx[0], :], data[idx[1], :]
 	return data[idx[0]], data[idx[1]]
 
+#TODO: test
 def qpartition(data, p, r, rho):
 	dists = np.sum(np.abs(data[:,1:] - p[1:]), axis=1)
 	L = data[dists < rho]
 	G = data[dists >= rho]
 	Gw = data[np.logical_and(dists>=rho, dists <= (rho + r))]
-	Lw = data[np.logical_and(dists>=rho-r, dists <rho)]
+	Lw = data[np.logical_and(dists>=(rho-r), dists <rho)]
 	return L, G, Lw, Gw
 
 def piv_join(data1, data2, results, r, k, eps):
@@ -65,7 +67,7 @@ def piv_join(data1, data2, results, r, k, eps):
 					f = True
 					break
 			if not f: 
-				dist  = np.sum(np.abs(data1[i][1:]-data2[j][1:]))
+				dist = np.sum(np.abs(data1[i][1:]-data2[j][1:]))
 				distances += 1
 				if len(results[data1[i][0]]) < k:
 					heappush(results[data1[i][0]], Res(data2[j][0], dist))
@@ -120,6 +122,7 @@ def quickjoin_iter(data, r, c, k, join_func, results = None, eps = 0, distances=
 	maxdist2 = -1
 	while not qw.empty():
 		Lw, Gw = qw.get()
+		#print Lw.shape, Gw.shape
 		if (Lw.shape[0] + Gw.shape[0]) <= c:
 			results, p_dists, maxdist2 = join_func(Lw, Gw, results, r, k, eps)
 			distances += p_dists
@@ -145,8 +148,9 @@ def quickjoin(data, k, c):
 	data = np.hstack((idx, data))
 	print("first run of QJ")
 	results, distances, maxdist = quickjoin_iter(data, 0, c, k, knn_join)
+	print maxdist
 	#return results, distances
 	print("second run of QJ")
-	results2, distances2, _ = quickjoin_iter(data, maxdist, c, k, piv_join, results)
+	results2, distances2, _ = quickjoin_iter(data, maxdist+1, c, k, piv_join, results)
 	return results2, distances+distances2
 	

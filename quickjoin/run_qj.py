@@ -12,7 +12,7 @@ output_dists = open(os.path.join(sys.argv[2], "qj.dists"), "w")
 
 print("running QJ for %d vectors" % len(input_matrix))
 start = time.time()
-res, dist = qj.quickjoin(input_matrix, 10, 600)
+res, dist = qj.quickjoin(input_matrix, 10, 1000)
 end = time.time()
 
 print("writing results")

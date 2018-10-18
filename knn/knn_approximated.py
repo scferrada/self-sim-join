@@ -66,6 +66,27 @@ def get_centers(input_matrix):
     return data, centers
 
 
+def make_groups_fit(data, centers, k, max_size, results):
+    groups = [Group(x, None, 0, id) for id, x in enumerate(centers)]
+    for row in data:
+        dist_to_centers = np.sum(np.abs(centers[:, 1:] - row[1:]), axis=1)
+        enlargement_factors = []
+        for i, group in enumerate(groups):
+            enlargement_factors.append(dist_to_centers[i]-group.r)
+            if len(results[centers[i][0]]) < k:
+                heappush(results[centers[i][0]], Res(row[0], dist_to_centers[i]))
+            elif dist_to_centers[i] < -results[centers[i][0]][0].dist:
+                heappushpop(results[centers[i][0]], Res(row[0], dist_to_centers[i]))
+        enlargement_factors = np.array(enlargement_factors)
+        j = 0
+        while True:
+            idx = np.argpartition(enlargement_factors, j)[j]
+            if len(groups[idx]) < max_size:
+                groups[idx].stack(row, enlargement_factors[idx])
+                break
+            j += 1
+
+
 def make_groups(data, centers, k, max_size, results):
     groups = [Group(x, None, 0, id) for id, x in enumerate(centers)]
     for row in data:

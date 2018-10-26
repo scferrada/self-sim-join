@@ -15,10 +15,10 @@ data = np.load(args.input_matrix)
 for i in range(args.iter):
 	#try:
 	print("running %d experiment"%i)
-	results = knn.sim_join(data, args.k, 3)
+	results = knn.sim_join(data, args.k, 2)
 	f = open(os.path.join(args.output_folder, "%d.res"%i), "w")
-	for x, nn in results:
-		f.write("%d,%s\n"%(x, str(nn)))
+	for x in results:
+		f.write("%d,%s\n"%(x, ",".join([str(y.obj) for y in results[x]])))
 	f.close()
 	# except Exception, e:
 		# print(str(e))

@@ -27,12 +27,12 @@ k = 100
 # np.save(open('dataset.npy', 'w'), dataset)
 dataset = np.load(args.input_numpy)
 print "starting bruteforce"
-with open(os.path.join(args.output_folder, "knn.csv"), "w") as outfile:	
+with open(os.path.join(args.output_folder, "decafknn.csv"), "w") as outfile:	
 	count = 0
 	for row in dataset:
 		distances = np.sum(np.abs(dataset - row), axis=1)
-		idx = np.argsort(distances)[:k+1]
-		idx_str = np.array2string(idx, separator=',')[2:-2].strip()
+		idx = np.argsort(distances)[1:k+1]
+		idx_str = ",".join([str(x) for x in idx.tolist()])
 		txt = "%d,%s\n" % (count, idx_str)
 		outfile.write(txt)
 		count += 1

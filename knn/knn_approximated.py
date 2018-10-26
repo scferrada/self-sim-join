@@ -68,23 +68,31 @@ def get_centers(input_matrix):
 
 def make_groups_fit(data, centers, k, max_size, results):
     groups = [Group(x, None, 0, id) for id, x in enumerate(centers)]
+    temp = 0
     for row in data:
         dist_to_centers = np.sum(np.abs(centers[:, 1:] - row[1:]), axis=1)
+        print dist_to_centers
         enlargement_factors = []
         for i, group in enumerate(groups):
             enlargement_factors.append(dist_to_centers[i]-group.r)
             if len(results[centers[i][0]]) < k:
-                heappush(results[centers[i][0]], Res(row[0], dist_to_centers[i]))
-            elif dist_to_centers[i] < -results[centers[i][0]][0].dist:
-                heappushpop(results[centers[i][0]], Res(row[0], dist_to_centers[i]))
+                heappush(results[group.center[0]], Res(row[0], dist_to_centers[i]))
+            elif dist_to_centers[i] < -results[group.center[0]][0].dist:
+                heappushpop(results[group.center[0]], Res(row[0], dist_to_centers[i]))
         enlargement_factors = np.array(enlargement_factors)
+        print enlargement_factors
         j = 0
         while True:
             idx = np.argpartition(enlargement_factors, j)[j]
             if len(groups[idx]) < max_size:
-                groups[idx].stack(row, enlargement_factors[idx])
+                print "added to %d" % idx
+                if temp == 11:    
+                    exit(1)
+                groups[idx].stack(row, dist_to_centers[idx])
                 break
             j += 1
+        temp += 1
+    return groups
 
 
 def make_groups(data, centers, k, max_size, results):
@@ -110,25 +118,29 @@ def sim_join(input_matrix, k, group_size=1):
     idx = np.arange(len(input_matrix)).reshape(len(input_matrix), 1)
     matrix = np.hstack((idx, input_matrix))
     data, centers = get_centers(matrix)
-    results = {x: [] for x in idx}
+    print centers
+    results = {x[0]: [] for x in matrix}
     print("making %d *sqrt(n)-sized groups..." % group_size)
-    groups = make_groups(data, centers, k, group_size * len(centers), results)
+    groups = make_groups_fit(data, centers, k, group_size * len(centers), results)
     R = np.array([group.r for group in groups])
     print("nested loop... %d groups" % len(groups))
     for i, group in enumerate(groups):
         if len(group) <= 1:
+            #print("group %d done [1 elem]." % i)
             continue
         if len(group) == 2:
             g = [group.elems]
         else:
             g = group.elems
+        print len(group)
+        print(group_size * len(centers))
         for current, elem_i in enumerate(g):
             dist_to_groups = (np.sum(np.abs(centers[:, 1:] - elem_i[1:]), axis=1) - R)
             j = 0
             while True:
                 closest_group = np.argpartition(dist_to_groups, j)[j]
-                if groups[closest_group].id == group.id:
-                    closest_group = np.argpartition(dist_to_groups, j)[j]
+                if groups[closest_group].id != group.id:
+                    break
                 j += 1
             target = np.vstack((group.all_but(current), groups[closest_group].all()))
             while len(target) <= k:
@@ -140,6 +152,6 @@ def sim_join(input_matrix, k, group_size=1):
             idx = np.argpartition(distances, k)[:k]
             knn = target[idx]
             for d, e in enumerate(knn):
-                heappush(results[elem_i[0]], Res(knn[0], distances[d]))
+                heappush(results[elem_i[0]], Res(e[0], distances[d]))
         print("group %d done." % i)
     return results

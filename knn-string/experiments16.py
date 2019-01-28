@@ -13,7 +13,7 @@ data = []
 for line in open(args.input_matrix, "r"):
 	data.append(line.strip())
 
-k=1
+k=16
 for c in [1, 2, 3]:
 	for i in range(100):
 		print("running %d experiment"%i)

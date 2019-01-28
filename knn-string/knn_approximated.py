@@ -1,5 +1,7 @@
-import math, random, editdistance
+import math, random
 import numpy as np
+from pyjarowinkler import distance
+
 
 hash = {}
 
@@ -50,12 +52,11 @@ def make_groups(data, centers, k, max_size, results):
     center_nn = [[-1 for _ in range(k)] for _ in range(len(centers))]
     center_mindists = [[float("inf") for _ in range(k)] for _ in range(len(centers))]
     for row in data:
-        dists = [editdistance.eval(c, row) for c in centers]
+        dists = [distance.get_jaro_distance(c, row) for c in centers]
         for i, c in enumerate(centers):
             if dists[i] < max(center_mindists[i]):
                 idx = center_mindists[i].index(max(center_mindists[i]))
-                center_nn[i][idx] = hash[row]
-                #center_nn[i][idx] = row				
+                center_nn[i][idx] = hash[row]			
                 center_mindists[i][idx] = dists[i]
         best_groups = np.argsort(np.array(dists)).tolist()
         t = 0
@@ -75,12 +76,12 @@ def sim_join(input_array, k, group_size=1):
     results = []
     print("making %d *sqrt(n)-sized groups..."%group_size)
     groups = make_groups(data, centers, k, group_size*len(centers), results)
-    print("nested loop...")
+    print("nested loop %d groups" % len(groups))
     for i, group in enumerate(groups):
         if len(group) <= 1: continue
         for current, elem_i in enumerate(group.elems):
             j=1
-            dist_to_groups = [editdistance.eval(g.center, elem_i)-g.r for g in groups]
+            dist_to_groups = [distance.get_jaro_distance(g.center, elem_i)-g.r for g in groups]
             closest_group = dist_to_groups.index(min(dist_to_groups))
             if groups[closest_group].id == group.id: 
                 closest_group = np.argpartition(np.array(dist_to_groups), j)[j]
@@ -91,9 +92,7 @@ def sim_join(input_array, k, group_size=1):
                 j+=1
                 if groups[closest_group].id == group.id: continue
                 target = target + groups[closest_group].all()
-            distances = np.array([editdistance.eval(x, elem_i) for x in target])
+            distances = np.array([distance.get_jaro_distance(x, elem_i) for x in target])
             knn = np.argpartition(distances, k)[:k].tolist()
             results.append((hash[elem_i], [hash[target[x]] for x in knn]))
-            #results.append((elem_i, knn))
-        print("group %d done." % i)
     return results

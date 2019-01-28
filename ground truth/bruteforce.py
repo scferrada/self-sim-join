@@ -9,7 +9,7 @@ parser.add_argument('--ext', dest='extension', type=str, default='npy', help='th
 
 args = parser.parse_args()
 
-k = 100
+k = 20
 # print "loading matrices"
 # matrices = []
 # for (p,d,f) in os.walk(args.input_folder):
@@ -27,7 +27,7 @@ k = 100
 # np.save(open('dataset.npy', 'w'), dataset)
 dataset = np.load(args.input_numpy)
 print "starting bruteforce"
-with open(os.path.join(args.output_folder, "decafknn.csv"), "w") as outfile:	
+with open(os.path.join(args.output_folder, "hog.csv"), "w") as outfile:	
 	count = 0
 	for row in dataset:
 		distances = np.sum(np.abs(dataset - row), axis=1)

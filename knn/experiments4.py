@@ -11,13 +11,13 @@ parser.add_argument('output_folder', type=str, help='The directory where the res
 
 args = parser.parse_args()
 data = np.load(args.input_matrix)
-for k in [1, 4, 8, 16]:
-	for c in [1, 2, 3]:
-		for i in range(100):
-			#try:
-			print("running %d experiment"%i)
-			results = knn.sim_join(data, k, c)
-			f = open(os.path.join(args.output_folder, str(k), str(c), "%d.res"%i), "w")
-			for x in results:
-				f.write("%d,%s\n"%(x, ",".join([str(y.obj) for y in results[x]])))
-			f.close()
+k =4
+for c in [1, 2, 3]:
+	for i in range(100):
+		#try:
+		print("running %d experiment"%i)
+		results = knn.sim_join(data, k, c)
+		f = open(os.path.join(args.output_folder, str(k), str(c), "%d.res"%i), "w")
+		for x in results:
+			f.write("%d,%s\n"%(x, ",".join([str(y.obj) for y in results[x]])))
+		f.close()

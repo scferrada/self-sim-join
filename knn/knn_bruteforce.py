@@ -13,7 +13,7 @@ k = 50
 d = np.load(args.input_numpy)
 dataset = d#[:d.shape[0]*(args.batch/100.0)]
 print "starting bruteforce for %d" % dataset.shape[0]
-with open(os.path.join(args.output_folder, "knn.csv"), "w") as outfile:	
+with open(os.path.join(args.output_folder, "decafknn_norm.csv"), "w") as outfile:	
 	count = 0
 	for row in dataset:
 		distances = np.sum(np.abs(dataset - row), axis=1)

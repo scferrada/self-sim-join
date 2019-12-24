@@ -33,11 +33,14 @@ for p, d, f in os.walk(args.approx_path):
 			correct = 0
 			parts = line.split(',')
 			key = int(parts[0].strip())
-			ann = [int(float(x.strip())) for x in parts[1:]]
+			try:
+				ann = [int(float(x.strip())) for x in parts[1:]]
+			except:
+				continue
 			knn = ground_truth[key][:args.k]
 			for e in ann:
 				if e in knn:
 					correct += 1
 			per_img.append(correct)		
 	print("%s done, %d files"%(p, len(f)))
-	np.save(os.path.join(args.out_path, 'histogram%s.npy'%p[-1]), np.array(per_img))
+	np.save(os.path.join(args.out_path, 'histogram%s.npy'%p[p.rfind('/')+1:]), np.array(per_img))

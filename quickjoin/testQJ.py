@@ -1,7 +1,7 @@
 import numpy as np
 import quickjoin as qj
 
-N = 1000
+N = 40000
 l = []
 for i in range(N):
 	l.append([i, i])

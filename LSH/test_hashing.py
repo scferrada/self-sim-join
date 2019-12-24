@@ -4,15 +4,18 @@ import numpy as np
 N = 100000
 l = []
 
-data = np.load('data/dataset.npy')[:100000]
+data = np.load('data/dataset.npy')
+data = data[0:len(data)/10]
 idx = np.arange(len(data)).reshape(len(data), 1)
 data = np.hstack((idx, data))
+k = 10
+l = 30
+r = 80
 
-table, G = hash_data(data, 10, 30, 18)
+table, G = hash_data(data, k, l, r)
 
 less = 0
 more = 0
-print len(table)
 for x in table:
 	for y in x:
 		c = len(x[y])
@@ -22,3 +25,4 @@ for x in table:
 			less += 1
 print more
 print less
+print k, l, r

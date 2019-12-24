@@ -25,37 +25,46 @@ def hash_data(data, h_k, g_l, r):
 			coord = []
 			for h_i in g_j:
 				c = np.floor((np.inner(v[1:], h_i[0])+h_i[1])/r)
-				coord.append(c)#(h_i(v))
+				coord.append(int(c))#(h_i(v))
 			t_coord = tuple(coord)
 			if t_coord not in tables[j]:
-				tables[j][t_coord] = [v[0]]
+				tables[j][t_coord] = [int(v[0])]
 			else:
-				tables[j][t_coord].append(v[0])
+				tables[j][t_coord].append(int(v[0]))
 	return tables, G
 	
-def get_knn(tables, G, q, k, r, distance):
+def get_knn(tables, G, data, q, k, r, distance):
 	candidates = []
 	for i, table in enumerate(tables):
 		q_hash = []
-		for h in G[i]:
+		for h_i in G[i]:
 			c = np.floor((np.inner(q[1:], h_i[0])+h_i[1])/r)
 			q_hash.append(c)
 		if tuple(q_hash) in table:
 			candidates.extend(table[tuple(q_hash)])
-	candidates = np.array(candidates)
+		if len(candidates) >= 3*len(tables):
+			break
+	ddd = np.unique([int(x) for x in candidates if x!= q[0]])
+	#print ddd
+	#print len(candidates)
+	#print ddd.shape 
+	#print q[0]
+	candidates = data[[int(i) for i in ddd]]
 	if len(candidates) <= k:
-		return candidates
+		return candidates[:,0]
 	distances = distance(candidates, q)
 	idx = np.argpartition(distances, k)[:k]
-	return candidates[idx]
+	return candidates[idx, 0]
 	
 def manhattan(mat, v):
 	return np.sum(np.abs(mat[:,1:]-v[1:]), axis=1)
 	
 def self_sim_join(data, h_k, g_l, r, k, distance=manhattan):
+	idx = np.arange(len(data)).reshape(len(data), 1)
+	data = np.hstack((idx, data))
 	tables, G = hash_data(data, h_k, g_l, r)
 	results = {}
 	for row in data:
-		knn = get_knn(tables, G, row, k, r, distance)
-		results[row[0]] = knn
+		knn = get_knn(tables, G, data, row, k, r, distance)
+		results[row[0]] = knn.tolist()
 	return results

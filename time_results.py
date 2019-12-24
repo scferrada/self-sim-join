@@ -22,8 +22,9 @@ for p, d, f in os.walk(args.input_path):
 		end = os.path.getmtime(os.path.join(p, file))
 		diffs.append(end-start)
 		start = end
-	out = open(os.path.join(args.output_path, "c%s_k%d"%(p[-1], args.k)), 'w')
+	out = open(os.path.join(args.output_path, "c%s_k%d"%(p[p.rfind('/')+1:], args.k)), 'w')
 	c_array = np.array(diffs)
+	c_array = np.sort(c_array)
 	out.write("[%s]\n"% ','.join([str(x) for x in diffs]))
 	out.write("max: %d\n" % np.max(c_array))
 	out.write("min: %d\n" % np.min(c_array))

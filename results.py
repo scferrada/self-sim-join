@@ -29,11 +29,16 @@ for p, d, f in os.walk(args.approx_path):
 	for file in f:
 		correct = 0
 		path = os.path.join(p, file)
+		print path
 		for line in open(path, 'r'):
+			if len(line.strip())==0: continue
 			line = line.translate(None, '[]') #comment for hog
 			parts = line.split(',')
 			key = int(parts[0].strip())
-			ann = [int(float(x.strip())) for x in parts[1:]]
+			try:
+				ann = [int(float(x.strip())) for x in parts[1:]]
+			except:
+				continue
 			knn = ground_truth[key][:args.k]
 			for e in ann:
 				if e in knn:

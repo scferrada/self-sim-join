@@ -49,8 +49,6 @@ def choose_better_pivots(data, c):
 		elif spread < min_spread:
 			min_spread = spread
 			p2 = pi
-	if p1[0]==p2[0]: print "PIVOTES IWALES UWU"
-	if min_spread == best_spread: "GGrino"
 	return p1, p2
 
 
@@ -104,34 +102,28 @@ def piv_join(data1, data2, results, r, k, eps):
 
 
 def knn_join(data1, data2, results, r, k, eps):
-	d = 0
-	for elem_i in data1:
-		distances = np.sum(np.abs(data2[:, 1:] - elem_i[1:]), axis=1)
-		d += len(data2)
-		for i, dist in enumerate(distances):
-			if data2[i][0] == elem_i[0]: continue
-			if data2[i][0] in [x.obj for x in results[elem_i[0]]]: continue
-			#print len(results[elem_i[0]])
-			if len(results[elem_i[0]]) < k:
-				heappush(results[elem_i[0]], Res(data2[i][0], dist))
-			elif dist < -results[elem_i[0]][0].dist:
-				heappushpop(results[elem_i[0]], Res(data2[i][0], dist))
-	return results, d
+	if len(data2) == 0:
+		return results, 0, r
+	distances = np.abs(data1[:,1:,None]-data2[:,1:,None].T).sum(1)
+	d = len(data2) * len(data1)
+	if len(data2) <= k+1:
+		idx = np.argsort(distances, axis=1)
+	else:	
+		idx = np.argpartition(distances, k+1, axis=1)[:, :k+1]
+	for i in range(len(data1)):
+		for j in range(min(k+1,len(data2))):
+			if data1[i][0] == data2[idx[i][j]][0]: continue
+			dist = distances[i,idx[i][j]]
+			if len(results[data1[i][0]]) < k:
+				heappush(results[data1[i][0]], Res(data2[idx[i][j]][0], dist))
+			elif dist < -results[data1[i][0]][0].dist:
+				heappushpop(results[data1[i][0]], Res(data2[idx[i][j]][0], dist))
+	if r!=0 and all([len(results[x])==k for x in results]):
+		d = - min([x[0].dist for x in results.values()])
+		if d<r:
+			r = d
+	return results, d, r
 
-def knn_bf_join(data1, data2, results, r, k, eps):
-	d = 0
-	for elem_i in data1:
-		distances = np.sum(np.abs(data2[:, 1:] - elem_i[1:]), axis=1)
-		d += len(data2)
-		for i, dist in enumerate(distances):
-			if data2[i][0] == elem_i[0]: continue
-			if data2[i][0] in [x.obj for x in results[elem_i[0]]]: continue
-			if dist <= r:
-				if len(results[elem_i[0]]) < k:
-					heappush(results[elem_i[0]], Res(data2[i][0], dist))
-				elif dist < -results[elem_i[0]][0].dist:
-					heappushpop(results[elem_i[0]], Res(data2[i][0], dist))
-	return results, d
 				
 '''
 Data is a numpy matrix, where every row represents a vector
@@ -139,28 +131,22 @@ r is the range query parameter
 c is the minimum amount of vectors needed to perform another recursion step
 '''
 def quickjoin_iter(data, r, c, k, join_func, results=None, eps=0, distances=0):
-	q = Queue.Queue()
-	qw = Queue.Queue()
+	q = Queue.LifoQueue()
+	qw = Queue.LifoQueue()
 	q.put(data)
-	maxdist = 0
 	if results is None:
 		results = {x[0]: [] for x in data}
 	while not q.empty():
 		slice = q.get()
 		if slice.shape[0] <= c:
-			results, p_dists = join_func(slice, slice, results, r, k, eps)
+			results, p_dists, _ = join_func(slice, slice, results, r, k, eps)
 			distances += p_dists
 			q.task_done()
 			continue
-		p1, p2 = choose_better_pivots(slice, c)
+		p1, p2 = choose_pivots(slice)
 		rho = np.sum(np.abs(p1[1:] - p2[1:]))
 		distances += 1
 		L, G, Lw, Gw = qpartition(slice, p1, r, rho)
-		if L.shape[0] < c or G.shape[0] < c:
-			results, p_dists = join_func(slice, slice, results, r, k, eps)
-			distances += p_dists
-			q.task_done()
-			continue
 		distances += slice.shape[0]
 		q.task_done()
 		q.put(L)
@@ -169,28 +155,26 @@ def quickjoin_iter(data, r, c, k, join_func, results=None, eps=0, distances=0):
 		qw.put((Lw, Gw))
 	while not qw.empty():
 		Lw, Gw = qw.get()
-		if (Lw.shape[0] + Gw.shape[0]) <= c:
-			results, p_dists = join_func(Lw, Gw, results, r, k, eps)
+		if (Lw.shape[0] + Gw.shape[0]) <= 2*c:
+			results, p_dists, r = join_func(Lw, Gw, results, r, k, eps)
 			distances += p_dists
 			qw.task_done()
 			continue
-		p1, p2 = choose_better_pivots(np.vstack((Lw, Gw)), c)
+		p1, p2 = choose_pivots(np.vstack((Lw, Gw)))
 		rho = np.sum(np.abs(p1[1:] - p2[1:]))
 		distances += 1
 		L1, G1, Lw1, Gw1 = qpartition(Lw, p1, r, rho)
 		L2, G2, Lw2, Gw2 = qpartition(Gw, p1, r, rho)
 		distances += Lw.shape[0] + Gw.shape[0]
-		if (L1.shape[0] + L2.shape[0]) < c or (G1.shape[0] + G2.shape[0]) < c \
-			or (Lw1.shape[0] + Gw1.shape[0]) < c or (Lw2.shape[0] + Gw2.shape[0]) < c:
-			results, p_dists = join_func(Lw, Gw, results, r, k, eps)
-			distances += p_dists
-			qw.task_done()
-			continue
 		qw.task_done()
-		qw.put((L1, L2))
-		qw.put((G1, G2))
-		qw.put((Lw1, Gw1))
-		qw.put((Lw2, Gw2))
+		if L1.shape[0] != 0 and L2.shape[0] != 0:
+			qw.put((L1, L2))
+		if G1.shape[0] != 0 and G2.shape[0] != 0:
+			qw.put((G1, G2))
+		if Lw1.shape[0] != 0 and Gw2.shape[0] != 0:	
+			qw.put((Lw1, Gw2))
+		if Gw1.shape[0] != 0 and Lw2.shape[0] != 0:	
+			qw.put((Gw1, Lw2))
 	q.join()
 	qw.join()
 	return results, distances
@@ -200,10 +184,8 @@ def quickjoin(data, k, c):
 	idx = np.arange(len(data)).reshape(len(data), 1)
 	data = np.hstack((idx, data))
 	print("first run of QJ")
-	results, distances = quickjoin_iter(data, 2, c, k, knn_join)
-	#return results, 0
-	maxdist = - min([x[0].dist for x in results.values()])
-	print(maxdist)
+	results, distances = quickjoin_iter(data, 0, c, k, knn_join)
+	maxdist = - min([results[x][0].dist for x in results if len(results[x]) > 0])
 	print("second run of QJ")
-	results2, distances2 = quickjoin_iter(data, maxdist, c*3, k, knn_bf_join)
+	results2, distances2 = quickjoin_iter(data, maxdist, c*10, k, knn_join, results)
 	return results2, distances + distances2
